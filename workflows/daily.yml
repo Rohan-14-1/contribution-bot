@@ -1,0 +1,39 @@
+name: Daily Activity Update
+
+on:
+  schedule:
+    # Runs once every day at 00:00 UTC
+    - cron: '0 0 * * *'
+  # Allows manual triggering from the GitHub Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-activity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run daily update script
+        run: python daily_update.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily_activity.txt
+          if git diff --staged --quiet; then
+            echo "No changes detected. Skipping commit."
+          else
+            git commit -m "chore: record daily activity [skip ci]"
+            git push
+          fi
